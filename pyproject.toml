@@ -12,6 +12,9 @@ beautifulsoup4 = "^4.9.3"
 [tool.poetry.dev-dependencies]
 pylint = "^2.8.2"
 
+[tool.poetry.scripts]
+nyt_recipe = "nyt_recipe:main"
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
