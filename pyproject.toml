@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nyt_recipe"
-version = "0.1.0"
+version = "1.0.0"
 authors = ["Ian Brault <ian@brault.dev>"]
 description = "Downloads recipes from the NYT Cooking website and converts them into an Apple Notes-compatible format"
 license = "MIT"
