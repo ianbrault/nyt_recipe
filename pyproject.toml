@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "nyt_recipe"
+version = "0.1.0"
+description = ""
+authors = ["Ian Brault <ian@brault.dev>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+requests = "^2.25.1"
+beautifulsoup4 = "^4.9.3"
+
+[tool.poetry.dev-dependencies]
+pylint = "^2.8.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
