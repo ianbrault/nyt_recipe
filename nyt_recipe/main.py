@@ -6,7 +6,8 @@ import sys
 
 import requests
 
-from recipe import *
+from .output import *
+from .recipe import Recipe
 
 
 def parse_args(args):
@@ -38,7 +39,7 @@ def save_recipe(recipe):
         error(f"failed to write the recipe file {recipe_file}")
         debug(str(ex))
 
-    print(f"Downloaded recipe \"{recipe.title}\" to {recipe_file}")
+    print(f"Saved recipe \"{recipe.title}\" to {recipe_file}")
 
 
 def download_and_save_recipe(url):
@@ -55,7 +56,7 @@ def download_and_save_recipe(url):
     save_recipe(recipe)
 
 
-if __name__ == "__main__":
+def main():
     try:
         args = parse_args(sys.argv[1:])
         toggle_debug(args.debug)
