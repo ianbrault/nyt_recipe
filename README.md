@@ -21,3 +21,7 @@ files in the `recipes` directory inside the current user's home directory.
 $ nyt_recipe https://cooking.nytimes.com/recipes/1020044-vegetable-paella-with-chorizo
 Saved recipe "Vegetable Paella With Chorizo" to /Users/ianbrault/recipes/vegetable_paella_with_chorizo.html
 ```
+
+Then import the note into Apple Notes.
+
+![import the recipe](screenshots/import.png) ![example recipe](screenshots/recipe.png)
