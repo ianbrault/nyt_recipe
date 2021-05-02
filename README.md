@@ -22,6 +22,6 @@ $ nyt_recipe https://cooking.nytimes.com/recipes/1020044-vegetable-paella-with-c
 Saved recipe "Vegetable Paella With Chorizo" to /Users/ianbrault/recipes/vegetable_paella_with_chorizo.html
 ```
 
-Then import the note into Apple Notes.
+Then import the note into Apple Notes: "File > Import to Notes..."
 
-![import the recipe](screenshots/import.png) ![example recipe](screenshots/recipe.png)
+![example recipe](screenshots/recipe.png)
