@@ -2,7 +2,7 @@
 
 `nyt_recipe` is a Python 3 script that is used to download recipes from
 [NYT Cooking](https://cooking.nytimes.com/) and save them to a file in a format
-that can easily be imported by Apple Notes.
+that can be easily imported by Apple Notes.
 
 ## Installation
 

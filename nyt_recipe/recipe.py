@@ -1,9 +1,14 @@
+# (c) 2021 Ian Brault
+# This code is licensed under the MIT License (see LICENSE.txt for details)
+
 import bs4
+
+import re
 
 from .output import *
 
 
-TEMPLATE = """
+TEMPLATE = """\
 <html>
 <body>
     <h1>{title}</h1>
@@ -36,34 +41,33 @@ def _title_from_soup(soup):
 
 
 def _serving_size_from_soup(soup):
-    serving = soup.find("span", attrs={"class": "recipe-yield-value"})
-    if serving is None:
-        warn("recipe is missing a serving size")
-        serving = ""
-    serving = serving.text.strip()
+    serving = ""
 
+    yield_span = soup.find("span", string="Yield:")
+    if yield_span is None:
+        warn("recipe is missing a serving size")
+        return serving
+    serving_span = yield_span.next_sibling
+    if serving_span is None:
+        warn("recipe is missing a serving size")
+        return serving
+
+    serving = serving_span.text.strip()
     debug(f"serving size: {serving}")
     return serving
 
 
 def _ingredients_from_soup(soup):
     ingredients = []
+    class_re = re.compile(r"ingredient_ingredient__.+")
 
-    ingredients_list = soup.find("ul", attrs={"class": "recipe-ingredients"})
-    if ingredients_list is None:
+    ingredients_list = soup.findAll("li", attrs={"class": class_re})
+    if not ingredients_list:
         warn("recipe is missing ingredients")
         return ingredients
 
-    for item in ingredients_list.find_all("li"):
-        quantity = item.find("span", attrs={"class": "quantity"})
-        name = item.find("span", attrs={"class": "ingredient-name"})
-        if quantity is None or name is None:
-            continue
-
-        quantity = quantity.text.strip()
-        name = name.text.strip()
-        ingredient = ((quantity + " ") if quantity else "") + name
-
+    for item in ingredients_list:
+        ingredient = " ".join(tag.text.strip() for tag in item.children)
         debug(f"ingredient: {ingredient}")
         ingredients.append(ingredient)
 
@@ -72,14 +76,19 @@ def _ingredients_from_soup(soup):
 
 def _instructions_from_soup(soup):
     instructions = []
+    class_re = re.compile(r"preparation_step__.+")
 
-    instructions_list = soup.find("ol", attrs={"class": "recipe-steps"})
-    if instructions_list is None:
+    instructions_list = soup.findAll("li", attrs={"class": class_re})
+    if not instructions_list:
         warn("recipe is missing instructions")
         return instructions
 
-    for item in instructions_list.find_all("li"):
-        instruction = item.text.strip()
+    for item in instructions_list:
+        step_tag = item.find("p", attrs={"class": "pantry--body-long"})
+        if not step_tag:
+            warn("instruction is missing text")
+            continue
+        instruction = step_tag.text.strip()
         debug(f"instruction: {instruction}")
         instructions.append(instruction)
 
@@ -96,8 +105,11 @@ class Recipe(object):
         self.instructions = instructions
 
     def to_html(self):
-        ingredients = "\n".join(f"<li>{i}</li>" for i in self.ingredients)
-        instructions = "\n".join(f"<li>{i}</li>" for i in self.instructions)
+        double_tab = " " * 8
+        ingredients = "\n".join(
+            f"{double_tab}<li>{i}</li>" for i in self.ingredients)
+        instructions = "\n".join(
+            f"{double_tab}<li>{i}</li>" for i in self.instructions)
         return TEMPLATE.format(
             title=self.title, serving_size=self.serving_size,
             ingredients=ingredients, instructions=instructions)

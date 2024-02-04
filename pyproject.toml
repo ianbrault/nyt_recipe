@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nyt_recipe"
-version = "1.0.0"
+version = "1.1.0"
 authors = ["Ian Brault <ian@brault.dev>"]
 description = "Downloads recipes from the NYT Cooking website and converts them into an Apple Notes-compatible format"
 license = "MIT"
@@ -9,11 +9,11 @@ repository = "https://github.com/ianbrault/nyt_recipe"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-requests = "^2.25.1"
-beautifulsoup4 = "^4.9.3"
+requests = "^2.31"
+beautifulsoup4 = "^4.12"
 
 [tool.poetry.dev-dependencies]
-pylint = "^2.8.2"
+pylint = "^2.8"
 
 [tool.poetry.scripts]
 nyt_recipe = "nyt_recipe.main:main"
