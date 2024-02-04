@@ -15,7 +15,8 @@ $ python3 -m pip install nyt-recipe
 ## Usage
 
 Provide a URL or list of URLs to the script. The script will place the output
-files in the `recipes` directory inside the current user's home directory.
+files in the `recipes` directory inside the current user's home directory, or
+to the output directory specified by the `-o` argument.
 
 ```bash
 $ nyt_recipe https://cooking.nytimes.com/recipes/1020044-vegetable-paella-with-chorizo
