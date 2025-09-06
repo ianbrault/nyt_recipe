@@ -12,7 +12,7 @@ from .output import *
 from .recipe import Recipe
 
 
-def parse_args(args):
+def parse_args(args: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Downloads recipes from NYT Cooking and saves them in a "
         "format that can be easily imported by Apple Notes."
@@ -38,7 +38,7 @@ def parse_args(args):
     return parser.parse_args(args)
 
 
-def download_recipe(url):
+def download_recipe(url: str):
     try:
         debug(f"fetching from {url}")
         raw = requests.get(url).text
@@ -50,7 +50,7 @@ def download_recipe(url):
     return Recipe.from_html(raw)
 
 
-def save_recipe(recipe, output_path):
+def save_recipe(recipe: Recipe, output_path: str):
     # create the output path if it does not already exist
     if not os.path.exists(output_path):
         os.makedirs(output_path)
@@ -84,4 +84,3 @@ def main():
                 save_recipe(recipe, args.output)
     except KeyboardInterrupt:
         pass
-
