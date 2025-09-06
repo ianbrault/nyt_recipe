@@ -29,71 +29,74 @@ TEMPLATE = """\
 """
 
 
-def _title_from_soup(soup):
-    title = soup.title.string
-    if title is None:
-        warn("recipe is missing a title")
-        title = ""
-    # strip the " - NYT Cooking" suffix and "Recipe"
-    title = title.replace(" Recipe", "").replace(" - NYT Cooking", "").strip()
-
-    debug(f"title: {title}")
-    return title
+class RecipeParseError(Exception):
+    def __init__(self, message: str):
+        super().__init__(message)
 
 
-def _serving_size_from_soup(soup):
-    serving = ""
+class RecipeParser(object):
+    def __init__(self, html: str):
+        self.soup = bs4.BeautifulSoup(html, "html.parser")
+        self.title = self.parse_title()
+        self.serving_size = self.parse_serving_size()
+        self.ingredients = self.parse_ingredients()
+        self.instructions = self.parse_instructions()
 
-    yield_span = soup.find("span", string="Yield:")
-    if yield_span is None:
-        warn("recipe is missing a serving size")
+    def parse_title(self) -> str:
+        if not self.soup.title or not self.soup.title.string:
+            raise RecipeParseError("recipe is missing a title")
+        title = self.soup.title.string
+        # strip the " - NYT Cooking" suffix and "Recipe"
+        title = title.replace(" Recipe", "").replace(" - NYT Cooking", "").strip()
+
+        debug(f"title: {title}")
+        return title
+
+    def parse_serving_size(self) -> str:
+        yield_span = self.soup.find("span", string="Yield:")
+        if yield_span is None:
+            warn("recipe is missing a serving size")
+            return ""
+        serving_span = yield_span.next_sibling
+        if serving_span is None:
+            warn("recipe is missing a serving size")
+            return ""
+
+        serving = serving_span.text.strip()
+        debug(f"serving size: {serving}")
         return serving
-    serving_span = yield_span.next_sibling
-    if serving_span is None:
-        warn("recipe is missing a serving size")
-        return serving
 
-    serving = serving_span.text.strip()
-    debug(f"serving size: {serving}")
-    return serving
+    def parse_ingredients(self) -> list[str]:
+        ingredients = []
+        class_re = re.compile(r"ingredient_ingredient__.+")
 
+        ingredients_list = self.soup.findAll("li", attrs={"class": class_re})
+        if not ingredients_list:
+            raise RecipeParseError("recipe is missing ingredients")
+        for item in ingredients_list:
+            ingredient = " ".join(tag.text.strip() for tag in item.children)
+            debug(f"ingredient: {ingredient}")
+            ingredients.append(ingredient)
 
-def _ingredients_from_soup(soup):
-    ingredients = []
-    class_re = re.compile(r"ingredient_ingredient__.+")
-
-    ingredients_list = soup.findAll("li", attrs={"class": class_re})
-    if not ingredients_list:
-        warn("recipe is missing ingredients")
         return ingredients
 
-    for item in ingredients_list:
-        ingredient = " ".join(tag.text.strip() for tag in item.children)
-        debug(f"ingredient: {ingredient}")
-        ingredients.append(ingredient)
+    def parse_instructions(self) -> list[str]:
+        instructions = []
+        class_re = re.compile(r"preparation_step__.+")
 
-    return ingredients
+        instructions_list = self.soup.findAll("li", attrs={"class": class_re})
+        if not instructions_list:
+            raise RecipeParseError("recipe is missing instructions")
+        for item in instructions_list:
+            step_tag = item.find("p", attrs={"class": "pantry--body-long"})
+            if not step_tag:
+                warn("instruction is missing text")
+                continue
+            instruction = step_tag.text.strip()
+            debug(f"instruction: {instruction}")
+            instructions.append(instruction)
 
-
-def _instructions_from_soup(soup):
-    instructions = []
-    class_re = re.compile(r"preparation_step__.+")
-
-    instructions_list = soup.findAll("li", attrs={"class": class_re})
-    if not instructions_list:
-        warn("recipe is missing instructions")
         return instructions
-
-    for item in instructions_list:
-        step_tag = item.find("p", attrs={"class": "pantry--body-long"})
-        if not step_tag:
-            warn("instruction is missing text")
-            continue
-        instruction = step_tag.text.strip()
-        debug(f"instruction: {instruction}")
-        instructions.append(instruction)
-
-    return instructions
 
 
 class Recipe(object):
@@ -130,12 +133,6 @@ class Recipe(object):
         return "\n".join(lines)
 
     @staticmethod
-    def from_html(raw: str) -> Recipe:
-        soup = bs4.BeautifulSoup(raw, "html.parser")
-
-        title = _title_from_soup(soup)
-        serving_size = _serving_size_from_soup(soup)
-        ingredients = _ingredients_from_soup(soup)
-        instructions = _instructions_from_soup(soup)
-
-        return Recipe(title, serving_size, ingredients, instructions)
+    def from_html(html: str) -> Recipe:
+        parsed = RecipeParser(html)
+        return Recipe(parsed.title, parsed.serving_size, parsed.ingredients, parsed.instructions)
