@@ -5,11 +5,12 @@
 import argparse
 import os
 import sys
+import traceback
 
 import requests
 
 from .output import *
-from .recipe import Recipe
+from .recipe import Recipe, RecipeParseError
 
 
 def parse_args(args: list[str]) -> argparse.Namespace:
@@ -38,16 +39,21 @@ def parse_args(args: list[str]) -> argparse.Namespace:
     return parser.parse_args(args)
 
 
-def download_recipe(url: str):
+def download_recipe(url: str) -> Recipe:
     try:
         debug(f"fetching from {url}")
         raw = requests.get(url).text
-    except Exception as ex:
+    except Exception:
         error(f"failed to get the recipe from {url}")
-        debug(str(ex))
+        debug(traceback.format_exc())
         sys.exit(1)
 
-    return Recipe.from_html(raw)
+    try:
+        return Recipe.from_html(raw)
+    except RecipeParseError as ex:
+        error(f"failed to parse the recipe from {url}: {ex}")
+        debug(traceback.format_exc())
+        sys.exit(1)
 
 
 def save_recipe(recipe: Recipe, output_path: str):
@@ -64,7 +70,7 @@ def save_recipe(recipe: Recipe, output_path: str):
             f.write(recipe.to_html())
     except (IOError, OSError) as ex:
         error(f"failed to write the recipe file {recipe_file}")
-        debug(str(ex))
+        debug(traceback.format_exc())
         sys.exit(1)
 
     print(f"Saved recipe \"{recipe.title}\" to {recipe_file}")
