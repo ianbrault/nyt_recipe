@@ -1,8 +1,9 @@
 # (c) 2021 Ian Brault
 # This code is licensed under the MIT License (see LICENSE.txt for details)
 
-import bs4
+from __future__ import annotations
 
+import bs4
 import re
 
 from .output import *
@@ -97,14 +98,18 @@ def _instructions_from_soup(soup):
 
 class Recipe(object):
     def __init__(
-        self, title="", serving_size="", ingredients=[], instructions=[],
+        self,
+        title: str = "",
+        serving_size: str = "",
+        ingredients: list[str] = [],
+        instructions: list[str] = [],
     ):
         self.title = title
         self.serving_size = serving_size
         self.ingredients = ingredients
         self.instructions = instructions
 
-    def to_html(self):
+    def to_html(self) -> str:
         double_tab = " " * 8
         ingredients = "\n".join(
             f"{double_tab}<li>{i}</li>" for i in self.ingredients)
@@ -114,8 +119,18 @@ class Recipe(object):
             title=self.title, serving_size=self.serving_size,
             ingredients=ingredients, instructions=instructions)
 
+    def to_plaintext(self) -> str:
+        lines = [self.title, self.serving_size]
+        lines.extend(["", "Ingredients:"])
+        for ingredient in self.ingredients:
+            lines.append(f"- {ingredient}")
+        lines.extend(["", "Instructions:"])
+        for n, instruction in enumerate(self.instructions, start=1):
+            lines.append(f"{n}. {instruction}")
+        return "\n".join(lines)
+
     @staticmethod
-    def from_html(raw):
+    def from_html(raw: str) -> Recipe:
         soup = bs4.BeautifulSoup(raw, "html.parser")
 
         title = _title_from_soup(soup)
@@ -124,4 +139,3 @@ class Recipe(object):
         instructions = _instructions_from_soup(soup)
 
         return Recipe(title, serving_size, ingredients, instructions)
-
