@@ -114,6 +114,16 @@ class Recipe(object):
             title=self.title, serving_size=self.serving_size,
             ingredients=ingredients, instructions=instructions)
 
+    def to_plaintext(self):
+        lines = [self.title, self.serving_size]
+        lines.extend(["", "Ingredients:"])
+        for ingredient in self.ingredients:
+            lines.append(f"- {ingredient}")
+        lines.extend(["", "Instructions:"])
+        for n, instruction in enumerate(self.instructions, start=1):
+            lines.append(f"{n}. {instruction}")
+        return "\n".join(lines)
+
     @staticmethod
     def from_html(raw):
         soup = bs4.BeautifulSoup(raw, "html.parser")
